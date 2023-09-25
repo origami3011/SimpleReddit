@@ -1,0 +1,89 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@model SubRedditResponse
+@{
+    ViewData["Title"] = "SubReddit";
+}
+
+
+<h2>Subreddit</h2>
+<span>Loading new content (r/Dallas) in <span id="time">60</span> (s)</span>
+
+<div id="subreddit" class="panel-group">
+    @foreach (var post in Model.PostDTOs)
+    {
+        <div style="width: 25rem; width: 300px;    padding: 0px;    border: 1px solid gray;    margin: 10px;">
+            <div class="panel-title"><h3>@post.Title</h3></div>
+            <div class="panel-body">
+                <div><span>Posted by </span>@post.PostedDate</div>
+                <div class="panel-text">@post.Content</div>
+                <div class="panel-img"><img src="@post.ImageURL" style="max-height: 200px; max-width: 200px;" /></div>
+            </div>
+        </div>
+    }
+</div>
+
+
+<script type="text/javascript">
+
+    (function ($) {
+        var pause = 60;   // in second
+
+        function tick() {
+            //clearInterval(intervalId);  // stop count down
+
+            let formData = {
+                searchString: 'Dallas',
+                category: 'all'
+            }
+
+            $.ajax({
+                url: "/Reddit/LoadSubredditAjax",
+                type: "GET",
+                data: formData,
+                success: function (response) {
+                    $.each(response, function (i, post) {
+
+                        var newPost = '<div style = "width: 25rem; width: 300px; padding: 0px; border: 1px solid gray; margin: 10px;"><div class="panel-title"><h3>' + post.Title + '</h3></div><div class="panel-body"><div><span>Posted by </span>' + post.PostedDate + '</div><div class="panel-text">' + post.Content + '</div><div class="panel-img"><img src="' + post.ImageURL + '" style = "max-height: 200px; max-width: 200px;"/></div></div></div>';
+
+                        //var newPost = '<div><div><h3>' + post.Title + '</h3></div><div><div><span>Posted by</span>' + post.PostedDate + '</div><div>' + post.Content + '</div><div> <img src="' + post.ImageURL + '" style = "max-height: 200px; max-width: 200px;" /> </div></div></div>';
+                        $('div#subreddit').prepend(newPost);
+
+                        //  or load new content
+                        //$('div#subreddit').html(newPost);
+                    });
+
+                    startTimer(pause, $('#time')); // start countdown again
+                },
+                error: function (request, status, error) {
+                    alert(request.responseText);
+                }
+            });            
+        }
+
+        function startTimer(duration, display) {
+            var timer = duration, minutes, seconds;
+            var intervalId = setInterval(function () {
+                minutes = parseInt(timer / 60, 10)
+                seconds = parseInt(timer % 60, 10);
+
+                minutes = minutes < 10 ? "0" + minutes : minutes;
+                seconds = seconds < 10 ? "0" + seconds : seconds;
+
+                display.text(minutes + ":" + seconds);
+
+                if (--timer < 0) {
+                    timer = duration;
+                }
+            }, 1000);
+        }
+
+        //  start timer for auto loading
+        setInterval(tick, pause * 1000);
+
+        //  start timer on UI
+        startTimer(pause, $('#time'));
+
+    })(jQuery);
+</script>
